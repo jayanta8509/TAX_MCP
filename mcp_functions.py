@@ -139,6 +139,55 @@ def get_client_basic_profile(
             return None
 
 
+# @mcp.tool()
+# def get_client_primary_contact(
+#     client_id: int,
+#     reference: str,
+# ) -> Optional[Dict[str, Any]]:
+#     """
+#     Retrieve the primary contact information for a client.
+    
+#     Returns contact name, email, phone, and address details.
+#     """
+#     ref_type = reference.lower()
+    
+#     with get_connection() as conn:
+#         cursor = conn.cursor(dictionary=True)
+        
+#         query = """
+#             SELECT 
+#                 CONCAT(COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) as name,
+#                 email1 as email,
+#                 phone1 as phone,
+#                 address1 as address,
+#                 city,
+#                 state,
+#                 zip,
+#                 country
+#             FROM contact_info
+#             WHERE reference = %s AND reference_id = %s
+#             LIMIT 1
+#         """
+#         cursor.execute(query, (ref_type, client_id))
+#         row = cursor.fetchone()
+        
+#         if not row:
+#             return None
+            
+#         return {
+#             "reference": ref_type,
+#             "client_id": client_id,
+#             "name": row.get("name", "").strip(),
+#             "email": row.get("email"),
+#             "phone": row.get("phone"),
+#             "address": row.get("address"),
+#             "city": row.get("city"),
+#             "state": row.get("state"),
+#             "zip": row.get("zip"),
+#             "country": row.get("country"),
+#         }
+
+
 @mcp.tool()
 def get_client_primary_contact(
     client_id: int,
@@ -149,37 +198,62 @@ def get_client_primary_contact(
     
     Returns contact name, email, phone, and address details.
     """
-    # Normalize reference
     ref_type = reference.lower()
-    
+
     with get_connection() as conn:
         cursor = conn.cursor(dictionary=True)
-        
-        # Query contact_info table instead of company/individual
+
+        cursor.execute(
+            """
+            SELECT reference_id
+            FROM internal_data
+            WHERE id = %s AND reference = %s
+            LIMIT 1
+            """,
+            (client_id, ref_type),
+        )
+        internal_row = cursor.fetchone()
+
+        if internal_row and internal_row.get("reference_id") is not None:
+            resolved_reference_id = internal_row["reference_id"]
+        else:
+            resolved_reference_id = client_id
+
         query = """
             SELECT 
-                CONCAT(COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) as name,
-                email1 as email,
-                phone1 as phone,
-                address1 as address,
+                CONCAT(
+                    COALESCE(first_name, ''), 
+                    CASE 
+                        WHEN (first_name IS NOT NULL AND first_name <> '' 
+                              AND last_name IS NOT NULL AND last_name <> '') 
+                        THEN ' ' 
+                        ELSE '' 
+                    END,
+                    COALESCE(last_name, '')
+                ) AS name,
+                email1 AS email,
+                phone1 AS phone,
+                address1 AS address,
                 city,
                 state,
                 zip,
                 country
             FROM contact_info
             WHERE reference = %s AND reference_id = %s
+            ORDER BY status DESC, id ASC
             LIMIT 1
         """
-        cursor.execute(query, (ref_type, client_id))
+        cursor.execute(query, (ref_type, resolved_reference_id))
         row = cursor.fetchone()
-        
+
         if not row:
             return None
-            
+
         return {
             "reference": ref_type,
-            "client_id": client_id,
-            "name": row.get("name", "").strip(),
+            "client_id": client_id,                
+            "reference_id": resolved_reference_id,
+            "name": (row.get("name") or "").strip(),
             "email": row.get("email"),
             "phone": row.get("phone"),
             "address": row.get("address"),
