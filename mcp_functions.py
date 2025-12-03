@@ -139,55 +139,6 @@ def get_client_basic_profile(
             return None
 
 
-# @mcp.tool()
-# def get_client_primary_contact(
-#     client_id: int,
-#     reference: str,
-# ) -> Optional[Dict[str, Any]]:
-#     """
-#     Retrieve the primary contact information for a client.
-    
-#     Returns contact name, email, phone, and address details.
-#     """
-#     ref_type = reference.lower()
-    
-#     with get_connection() as conn:
-#         cursor = conn.cursor(dictionary=True)
-        
-#         query = """
-#             SELECT 
-#                 CONCAT(COALESCE(first_name, ''), ' ', COALESCE(last_name, '')) as name,
-#                 email1 as email,
-#                 phone1 as phone,
-#                 address1 as address,
-#                 city,
-#                 state,
-#                 zip,
-#                 country
-#             FROM contact_info
-#             WHERE reference = %s AND reference_id = %s
-#             LIMIT 1
-#         """
-#         cursor.execute(query, (ref_type, client_id))
-#         row = cursor.fetchone()
-        
-#         if not row:
-#             return None
-            
-#         return {
-#             "reference": ref_type,
-#             "client_id": client_id,
-#             "name": row.get("name", "").strip(),
-#             "email": row.get("email"),
-#             "phone": row.get("phone"),
-#             "address": row.get("address"),
-#             "city": row.get("city"),
-#             "state": row.get("state"),
-#             "zip": row.get("zip"),
-#             "country": row.get("country"),
-#         }
-
-
 @mcp.tool()
 def get_client_primary_contact(
     client_id: int,
@@ -425,6 +376,357 @@ def get_client_internal_data(
             "manager": row.get("manager"),
             "partner": row.get("partner"),
             "practice_id": row.get("practice_id"),
+        }
+
+
+
+# //new-func
+
+@mcp.tool()
+def get_client_fiscal_profile(
+    client_id: int,
+    reference: str,
+) -> Optional[Dict[str, Any]]:
+    
+    ref_type = reference.lower()
+    table, pk_col = _get_table_and_pk(ref_type)
+
+    with get_connection() as conn:
+        resolved_id = _resolve_reference_id(conn, client_id, ref_type)
+        cursor = conn.cursor(dictionary=True)
+
+        if ref_type == "company":
+            query = f"""
+                SELECT
+                    {pk_col} AS reference_id,
+                    fye,
+                    start_month_year,
+                    filing_status,
+                    filling_status,
+                    incorporated_date
+                FROM {table}
+                WHERE {pk_col} = %s
+                LIMIT 1
+            """
+            cursor.execute(query, (resolved_id,))
+            row = cursor.fetchone()
+            if not row:
+                return None
+
+            return {
+                "reference": ref_type,
+                "client_id": client_id,
+                "reference_id": row["reference_id"],
+                "fye": row.get("fye"),
+                "start_month_year": row.get("start_month_year"),
+                "filing_status": row.get("filing_status"),
+                "filling_status": row.get("filling_status"),
+                "incorporated_date": (
+                    str(row["incorporated_date"])
+                    if row.get("incorporated_date")
+                    else None
+                ),
+            }
+
+        elif ref_type == "individual":
+            query = f"""
+                SELECT
+                    {pk_col} AS reference_id,
+                    filing_status,
+                    birth_date
+                FROM {table}
+                WHERE {pk_col} = %s
+                LIMIT 1
+            """
+            cursor.execute(query, (resolved_id,))
+            row = cursor.fetchone()
+            if not row:
+                return None
+
+            return {
+                "reference": ref_type,
+                "client_id": client_id,
+                "reference_id": row["reference_id"],
+                "filing_status": row.get("filing_status"),
+                "birth_date": (
+                    str(row["birth_date"])
+                    if row.get("birth_date")
+                    else None
+                ),
+            }
+
+        return None
+
+
+@mcp.tool()
+def get_client_services_overview(
+    client_id: int,
+    reference: str,
+) -> Optional[Dict[str, Any]]:
+    ref_type = reference.lower()
+    table, pk_col = _get_table_and_pk(ref_type)
+
+    with get_connection() as conn:
+        resolved_id = _resolve_reference_id(conn, client_id, ref_type)
+        cursor = conn.cursor(dictionary=True)
+
+        if ref_type == "company":
+            query = f"""
+                SELECT
+                    {pk_col} AS reference_id,
+                    services,
+                    principal_activity,
+                    business_description,
+                    website,
+                    individuals
+                FROM {table}
+                WHERE {pk_col} = %s
+                LIMIT 1
+            """
+            cursor.execute(query, (resolved_id,))
+            row = cursor.fetchone()
+            if not row:
+                return None
+
+            return {
+                "reference": ref_type,
+                "client_id": client_id,
+                "reference_id": row["reference_id"],
+                "services": row.get("services"),
+                "principal_activity": row.get("principal_activity"),
+                "business_description": row.get("business_description"),
+                "website": row.get("website"),
+                "individuals": row.get("individuals"),
+            }
+
+        elif ref_type == "individual":
+            query = f"""
+                SELECT
+                    {pk_col} AS reference_id,
+                    type,
+                    language
+                FROM {table}
+                WHERE {pk_col} = %s
+                LIMIT 1
+            """
+            cursor.execute(query, (resolved_id,))
+            row = cursor.fetchone()
+            if not row:
+                return None
+
+            return {
+                "reference": ref_type,
+                "client_id": client_id,
+                "reference_id": row["reference_id"],
+                "type": row.get("type"),
+                "language": row.get("language"),
+            }
+
+        return None
+
+@mcp.tool()
+def get_client_status_and_history(
+    client_id: int,
+    reference: str,
+) -> Optional[Dict[str, Any]]:
+    ref_type = reference.lower()
+    table, pk_col = _get_table_and_pk(ref_type)
+
+    with get_connection() as conn:
+        resolved_id = _resolve_reference_id(conn, client_id, ref_type)
+        cursor = conn.cursor(dictionary=True)
+
+        query = f"""
+            SELECT
+                {pk_col} AS reference_id,
+                status,
+                temp_client,
+                late_fee_status,
+                why_client_left,
+                created_time,
+                deleted_date,
+                date_of_dissolution
+            FROM {table}
+            WHERE {pk_col} = %s
+            LIMIT 1
+        """
+        cursor.execute(query, (resolved_id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+
+        return {
+            "reference": ref_type,
+            "client_id": client_id,
+            "reference_id": row["reference_id"],
+            "status": row.get("status"),
+            "temp_client": row.get("temp_client"),
+            "late_fee_status": row.get("late_fee_status"),
+            "why_client_left": row.get("why_client_left"),
+            "created_time": str(row["created_time"]) if row.get("created_time") else None,
+            "deleted_date": str(row["deleted_date"]) if row.get("deleted_date") else None,
+            "date_of_dissolution": (
+                str(row["date_of_dissolution"])
+                if row.get("date_of_dissolution")
+                else None
+            ),
+        }
+
+@mcp.tool()
+def get_client_origin_and_referral_info(
+    client_id: int,
+    reference: str,
+) -> Optional[Dict[str, Any]]:
+    ref_type = reference.lower()
+    table, pk_col = _get_table_and_pk(ref_type)
+
+    with get_connection() as conn:
+        resolved_id = _resolve_reference_id(conn, client_id, ref_type)
+        cursor = conn.cursor(dictionary=True)
+
+        query_main = f"""
+            SELECT
+                {pk_col} AS reference_id,
+                converted_from_lead,
+                client_added_from,
+                lead_id,
+                association_type,
+                client_association_status
+            FROM {table}
+            WHERE {pk_col} = %s
+            LIMIT 1
+        """
+        cursor.execute(query_main, (resolved_id,))
+        main_row = cursor.fetchone()
+        if not main_row:
+            return None
+
+        cursor.execute(
+            """
+            SELECT
+                referred_by_source,
+                referred_by_name
+            FROM internal_data
+            WHERE reference = %s
+              AND reference_id = %s
+            LIMIT 1
+            """,
+            (ref_type, resolved_id),
+        )
+        internal_row = cursor.fetchone() or {}
+
+        return {
+            "reference": ref_type,
+            "client_id": client_id,
+            "reference_id": main_row["reference_id"],
+            "converted_from_lead": main_row.get("converted_from_lead"),
+            "client_added_from": main_row.get("client_added_from"),
+            "lead_id": main_row.get("lead_id"),
+            "association_type": main_row.get("association_type"),
+            "client_association_status": main_row.get("client_association_status"),
+            "referred_by_source": internal_row.get("referred_by_source"),
+            "referred_by_name": internal_row.get("referred_by_name"),
+        }
+
+@mcp.tool()
+def get_client_team_assignment_details(
+    client_id: int,
+    reference: str,
+) -> Optional[Dict[str, Any]]:
+    
+    ref_type = reference.lower()
+
+    with get_connection() as conn:
+        resolved_id = _resolve_reference_id(conn, client_id, ref_type)
+        cursor = conn.cursor(dictionary=True)
+
+        query = """
+            SELECT
+                id,
+                reference,
+                reference_id,
+                office,
+                brand_id,
+                partner,
+                manager,
+                assistant,
+                property_manager,
+                client_association,
+                practice_id,
+                referred_by_source,
+                referred_by_name,
+                language,
+                status,
+                tenantId,
+                customer_vault_id
+            FROM internal_data
+            WHERE reference = %s
+              AND reference_id = %s
+            LIMIT 1
+        """
+        cursor.execute(query, (ref_type, resolved_id))
+        row = cursor.fetchone()
+        if not row:
+            return None
+
+        return {
+            "reference": ref_type,
+            "client_id": client_id,
+            "reference_id": row.get("reference_id"),
+            "office": row.get("office"),
+            "brand_id": row.get("brand_id"),
+            "partner": row.get("partner"),
+            "manager": row.get("manager"),
+            "assistant": row.get("assistant"),
+            "property_manager": row.get("property_manager"),
+            "client_association": row.get("client_association"),
+            "practice_id": row.get("practice_id"),
+            "referred_by_source": row.get("referred_by_source"),
+            "referred_by_name": row.get("referred_by_name"),
+            "language": row.get("language"),
+            "status": row.get("status"),
+            "tenantId": row.get("tenantId"),
+            "customer_vault_id": row.get("customer_vault_id"),
+        }
+
+@mcp.tool()
+def get_individual_residency_and_citizenship(
+    client_id: int,
+    reference: str,
+) -> Optional[Dict[str, Any]]:
+    
+    ref_type = reference.lower()
+    if ref_type != "individual":
+        return None
+
+    table, pk_col = _get_table_and_pk(ref_type)
+
+    with get_connection() as conn:
+        resolved_id = _resolve_reference_id(conn, client_id, ref_type)
+        cursor = conn.cursor(dictionary=True)
+
+        query = f"""
+            SELECT
+                {pk_col} AS reference_id,
+                country_residence,
+                country_citizenship,
+                language
+            FROM {table}
+            WHERE {pk_col} = %s
+            LIMIT 1
+        """
+        cursor.execute(query, (resolved_id,))
+        row = cursor.fetchone()
+        if not row:
+            return None
+
+        return {
+            "reference": ref_type,
+            "client_id": client_id,
+            "reference_id": row["reference_id"],
+            "country_residence": row.get("country_residence"),
+            "country_citizenship": row.get("country_citizenship"),
+            "language": row.get("language"),
         }
 
 
