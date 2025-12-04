@@ -411,7 +411,57 @@ def get_client_fiscal_profile(
     client_id: int,
     reference: str,
 ) -> Optional[Dict[str, Any]]:
-    
+    """
+    Purpose:
+        Provide a fiscal/tax profile snapshot for a specific client, including
+        filing status and key dates like fiscal year end and start dates.
+
+    Args:
+        client_id (int):
+            Global client ID, typically internal_data.id.
+            This will be resolved to the underlying company/individual primary key
+            via internal_data.reference_id when possible.
+        reference (str):
+            Client type string. Expected values:
+            - "company"
+            - "individual"
+
+    Returns:
+        dict | None:
+            For "company", a typical result:
+            {
+                "reference": "company",
+                "client_id": 3,
+                "reference_id": 1225,
+                "fye": 12,
+                "start_month_year": "01/2020",
+                "filing_status": "Active",
+                "filling_status": "On-time",   # if used by your data
+                "incorporated_date": "2020-05-10",
+            }
+
+            For "individual":
+            {
+                "reference": "individual",
+                "client_id": 7,
+                "reference_id": 7,
+                "filing_status": "Single",
+                "birth_date": "1990-03-15",
+            }
+
+            Returns None if the client record is not found.
+
+    Example usage:
+        >>> profile = get_client_fiscal_profile(3, "company")
+        >>> if profile:
+        ...     print(profile["fye"], profile["filing_status"])
+
+    Example questions this function helps answer:
+        - "What is my fiscal year end?"
+        - "When did my company start operations?"
+        - "What is my current filing status on file?"
+        - "What is my date of birth (for individual clients)?"
+    """
     ref_type = reference.lower()
     table, pk_col = _get_table_and_pk(ref_type)
 
@@ -487,6 +537,54 @@ def get_client_services_overview(
     client_id: int,
     reference: str,
 ) -> Optional[Dict[str, Any]]:
+    
+    """
+    Purpose:
+        Summarize what kind of services and activities are associated with
+        the client, suitable for answering "what do you handle for me?" type
+        questions.
+
+    Args:
+        client_id (int):
+            Global client ID (usually internal_data.id).
+        reference (str):
+            "company" or "individual".
+
+    Returns:
+        dict | None:
+            For "company":
+            {
+                "reference": "company",
+                "client_id": 3,
+                "reference_id": 1225,
+                "services": "Bookkeeping, Payroll, Tax preparation",
+                "principal_activity": "E-commerce Retail",
+                "business_description": "We sell clothing online...",
+                "website": "https://example.com",
+                "individuals": "Owner, CFO",   # if populated
+            }
+
+            For "individual":
+            {
+                "reference": "individual",
+                "client_id": 7,
+                "reference_id": 7,
+                "type": "Non-resident",
+                "language": 1,
+            }
+
+            Returns None if no client record is found.
+
+    Example usage:
+        >>> overview = get_client_services_overview(3, "company")
+        >>> if overview:
+        ...     print(overview["services"])
+
+    Example questions this function helps answer:
+        - "What services does your firm provide for my company?"
+        - "What is my principal business activity?"
+        - "What type of individual client am I (resident, non-resident, etc.)?"
+    """
     ref_type = reference.lower()
     table, pk_col = _get_table_and_pk(ref_type)
 
@@ -553,6 +651,46 @@ def get_client_status_and_history(
     client_id: int,
     reference: str,
 ) -> Optional[Dict[str, Any]]:
+    
+    """
+    Purpose:
+        Provide a status and lifecycle snapshot for a client, including
+        whether they are active or dissolved, temporary, any late fee flags,
+        and creation / deletion timestamps.
+
+    Args:
+        client_id (int):
+            Global client ID (internal_data.id if available).
+        reference (str):
+            "company" or "individual".
+
+    Returns:
+        dict | None:
+            Example (company):
+            {
+                "reference": "company",
+                "client_id": 3,
+                "reference_id": 1225,
+                "status": 1,
+                "temp_client": "n",
+                "late_fee_status": "n",
+                "why_client_left": None,
+                "created_time": "2022-01-15 10:30:00",
+                "deleted_date": None,
+                "date_of_dissolution": None,
+            }
+
+    Example usage:
+        >>> status = get_client_status_and_history(3, "company")
+        >>> if status and status["status"] == 1:
+        ...     print("Your account is active.")
+
+    Example questions this function helps answer:
+        - "Is my account active or closed?"
+        - "Do I have any late fee status?"
+        - "When did I become your client?"
+        - "When was my company dissolved or removed, if at all?"
+    """
     ref_type = reference.lower()
     table, pk_col = _get_table_and_pk(ref_type)
 
@@ -601,6 +739,46 @@ def get_client_origin_and_referral_info(
     client_id: int,
     reference: str,
 ) -> Optional[Dict[str, Any]]:
+    
+    """
+    Purpose:
+        Explain how the client came into your system, including whether they
+        were converted from a lead, what channel they came from, and any
+        explicit referral source / name stored in internal_data.
+
+    Args:
+        client_id (int):
+            Global client ID, typically internal_data.id.
+        reference (str):
+            "company" or "individual".
+
+    Returns:
+        dict | None:
+            Example:
+            {
+                "reference": "company",
+                "client_id": 3,
+                "reference_id": 1225,
+                "converted_from_lead": "y",
+                "client_added_from": "Website Form",
+                "lead_id": 555,
+                "association_type": "Primary",
+                "client_association_status": 1,
+                "referred_by_source": 2,
+                "referred_by_name": "John Doe",
+            }
+
+    Example usage:
+        >>> origin = get_client_origin_and_referral_info(3, "company")
+        >>> if origin:
+        ...     print(origin["client_added_from"], origin["referred_by_name"])
+
+    Example questions this function helps answer:
+        - "How did I become your client?"
+        - "Was I converted from a lead?"
+        - "Who referred me to your firm?"
+        - "What is my association type with your practice?"
+    """
     ref_type = reference.lower()
     table, pk_col = _get_table_and_pk(ref_type)
 
@@ -657,7 +835,51 @@ def get_client_team_assignment_details(
     client_id: int,
     reference: str,
 ) -> Optional[Dict[str, Any]]:
-    
+    """
+    Purpose:
+        Return the internal team assignment for a client, including office,
+        partner, manager, assistant, property manager, and key internal IDs
+        such as practice_id, tenantId, and customer_vault_id.
+
+    Args:
+        client_id (int):
+            Global client ID (internal_data.id).
+        reference (str):
+            "company" or "individual".
+
+    Returns:
+        dict | None:
+            Example:
+            {
+                "reference": "company",
+                "client_id": 3,
+                "reference_id": 1225,
+                "office": 1,
+                "brand_id": 2,
+                "partner": 10,
+                "manager": 11,
+                "assistant": 12,
+                "property_manager": "Jane Smith",
+                "client_association": "Primary",
+                "practice_id": "TAX-2024-001",
+                "referred_by_source": 2,
+                "referred_by_name": "John Doe",
+                "language": 1,
+                "status": 1,
+                "tenantId": "tenant-abc",
+                "customer_vault_id": "vault_123",
+            }
+
+    Example usage:
+        >>> team = get_client_team_assignment_details(3, "company")
+        >>> if team:
+        ...     print(team["office"], team["manager"], team["practice_id"])
+
+    Example questions this function helps answer:
+        - "Which office or brand is responsible for my account?"
+        - "Who is my assigned partner or manager?"
+        - "What internal practice ID or tenant ID is linked to my file?"
+    """
     ref_type = reference.lower()
 
     with get_connection() as conn:
@@ -718,7 +940,40 @@ def get_individual_residency_and_citizenship(
     client_id: int,
     reference: str,
 ) -> Optional[Dict[str, Any]]:
-    
+    """
+    Purpose:
+        Provide tax residency and citizenship details for individual clients.
+        For company references, this returns None.
+
+    Args:
+        client_id (int):
+            Global client ID.
+        reference (str):
+            Client type. This function only returns data when reference is
+            "individual" (case-insensitive). For "company" it returns None.
+
+    Returns:
+        dict | None:
+            Example:
+            {
+                "reference": "individual",
+                "client_id": 7,
+                "reference_id": 7,
+                "country_residence": 230,
+                "country_citizenship": 230,
+                "language": 1,
+            }
+
+    Example usage:
+        >>> residency = get_individual_residency_and_citizenship(7, "individual")
+        >>> if residency:
+        ...     print(residency["country_residence"])
+
+    Example questions this function helps answer:
+        - "What country of residence do you have on file for me?"
+        - "What is my citizenship recorded in your system?"
+        - "Which language preference is set for my individual profile?"
+    """
     ref_type = reference.lower()
     if ref_type != "individual":
         return None
@@ -758,7 +1013,79 @@ def get_individual_identity_and_tax_id(
     client_id: int,
     reference: str,
 ) -> Optional[Dict[str, Any]]:
-   
+    """
+    Purpose:
+        Retrieve core identity, tax ID, and residency/citizenship information
+        for an individual client. This includes:
+        - Legal name and full name
+        - Date of birth
+        - SSN/ITIN type and value
+        - Status and lifecycle dates
+        - Language (ID + name from master table)
+        - Country of residence (ID + name from master table)
+        - Country of citizenship (ID + name from master table)
+
+        It only returns data for individual clients; if the reference is
+        not "individual", the function returns None.
+
+    Args:
+        client_id (int):
+            Global client ID used by your application (typically internal_data.id).
+            This will be resolved to the underlying `individual.id` via
+            `internal_data.reference_id` when possible.
+        reference (str):
+            The client type string. This function is only meaningful when
+            `reference` is "individual" (case-insensitive). For "company"
+            or anything else, it returns None.
+
+    Returns:
+        dict | None:
+            A dictionary containing identity, tax ID, and residency info, or
+            None if the individual record cannot be found. Example shape:
+
+            {
+                "reference": "individual",
+                "client_id": 7,                # global client id
+                "reference_id": 42,            # individual.id
+
+                "first_name": "John",
+                "middle_name": "A.",
+                "last_name": "Doe",
+                "full_name": "John A. Doe",
+                "birth_date": "1990-03-15",
+
+                "ssn_itin_type": "SSN",
+                "ssn_itin": "123-45-6789",
+
+                "status": 1,
+                "created_time": "2022-01-15 10:30:00",
+                "deleted_date": None,
+                "date_of_dissolution": None,
+
+                "language_id": 1,
+                "language_name": "English",
+
+                "country_residence_id": 230,
+                "country_residence_name": "United States",
+                "country_residence_code": "US",
+
+                "country_citizenship_id": 230,
+                "country_citizenship_name": "United States",
+                "country_citizenship_code": "US",
+            }
+
+    Example usage:
+        >>> info = get_individual_identity_and_tax_id(7, "individual")
+        >>> if info:
+        ...     print(info["full_name"], info["birth_date"], info["ssn_itin_type"])
+
+    Example questions this function helps answer:
+        - "What is my full name and date of birth on file?"
+        - "What type of tax ID do you have for me (SSN or ITIN)?"
+        - "What SSN/ITIN number is associated with my profile?"
+        - "Which language do you have set for me?"
+        - "What is my country of residence and citizenship in your system?"
+    """
     ref_type = reference.lower()
     if ref_type != "individual":
         return None
