@@ -7,6 +7,7 @@ import time
 
 from client import ask_question
 
+
 # Setup logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -33,6 +34,11 @@ class TaxFilingRequest(BaseModel):
     reference: str  # "company" or "individual"
     query: str
     use_agent: bool = True
+
+class WelcomeMessageRequest(BaseModel):
+    user_id: str
+    client_id: int  # Integer primary key
+    reference: str  # "company" or "individual"
 
 
 @app.post("/chat/agent")
@@ -78,6 +84,47 @@ async def ask_question_endpoint(request: TaxFilingRequest):
     except Exception as e:
         logger.error(f"Error processing query: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error processing query: {str(e)}")
+
+@app.post("/welcome/message")
+async def get_welcome_message_endpoint(request: WelcomeMessageRequest):
+    """
+    Get the welcome message for a client
+    """
+    try:
+        logger.info(f"Received welcome message request for user {request.user_id}, client_id {request.client_id}")
+
+        if not request.user_id or request.user_id.strip() == "":
+            raise HTTPException(status_code=400, detail="User ID cannot be empty")
+
+        if not request.client_id:
+            raise HTTPException(status_code=400, detail="Client ID cannot be empty")
+
+        if not request.reference or request.reference.strip() == "":
+            raise HTTPException(status_code=400, detail="Reference cannot be empty")
+
+        if request.reference.lower() not in ["company", "individual"]:
+            raise HTTPException(status_code=400, detail="Reference must be 'company' or 'individual'")
+
+        # Import the function from mcp_functions
+        from welcome_message import get_client_welcome_message
+
+        # Get the welcome message
+        welcome_message = get_client_welcome_message(
+            client_id=request.client_id,
+            reference=request.reference.lower()
+        )
+
+        logger.info(f"Successfully processed welcome message for user {request.user_id}")
+        return {
+            "response": welcome_message,
+            "status_code": 200,
+            "timestamp": time.time(),
+        }
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        logger.error(f"Error processing welcome message: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error processing welcome message: {str(e)}")
 
 if __name__ == "__main__":
     uvicorn.run(
