@@ -1021,9 +1021,9 @@ def get_individual_identity_and_tax_id(
         - Date of birth
         - SSN/ITIN type and value
         - Status and lifecycle dates
-        - Language (ID + name from master table)
-        - Country of residence (ID + name from master table)
-        - Country of citizenship (ID + name from master table)
+        - Language 
+        - Country of residence 
+        - Country of citizenship
 
         It only returns data for individual clients; if the reference is
         not "individual", the function returns None.
@@ -1054,7 +1054,7 @@ def get_individual_identity_and_tax_id(
                 "full_name": "John A. Doe",
                 "birth_date": "1990-03-15",
 
-                "ssn_itin_type": "SSN",
+                
                 "ssn_itin": "123-45-6789",
 
                 "status": 1,
@@ -1062,14 +1062,14 @@ def get_individual_identity_and_tax_id(
                 "deleted_date": None,
                 "date_of_dissolution": None,
 
-                "language_id": 1,
+                
                 "language_name": "English",
 
-                "country_residence_id": 230,
+                
                 "country_residence_name": "United States",
                 "country_residence_code": "US",
 
-                "country_citizenship_id": 230,
+                
                 "country_citizenship_name": "United States",
                 "country_citizenship_code": "US",
             }
@@ -1077,11 +1077,13 @@ def get_individual_identity_and_tax_id(
     Example usage:
         >>> info = get_individual_identity_and_tax_id(7, "individual")
         >>> if info:
-        ...     print(info["full_name"], info["birth_date"], info["ssn_itin_type"])
+        ...     print(info["full_name"], info["birth_date"], info["ssn_itin"])
 
     Example questions this function helps answer:
         - "What is my full name and date of birth on file?"
-        - "What type of tax ID do you have for me (SSN or ITIN)?"
+        - “Can you confirm my full legal name?”
+        - "Do I already have an SSN/ITIN number?"
+        - “Please provide my ITIN number.”
         - "What SSN/ITIN number is associated with my profile?"
         - "Which language do you have set for me?"
         - "What is my country of residence and citizenship in your system?"
@@ -1158,7 +1160,6 @@ def get_individual_identity_and_tax_id(
             "birth_date": (
                 str(row["birth_date"]) if row.get("birth_date") else None
             ),
-            "ssn_itin_type": row.get("ssn_itin_type"),
             "ssn_itin": row.get("ssn_itin"),
 
             "status": row.get("status"),
@@ -1173,14 +1174,11 @@ def get_individual_identity_and_tax_id(
                 if row.get("date_of_dissolution")
                 else None
             ),
-            "language_id": row.get("language_id"),
             "language_name": row.get("language_name"),
 
-            "country_residence_id": row.get("country_residence_id"),
             "country_residence_name": row.get("country_residence_name"),
             "country_residence_code": row.get("country_residence_code"),
 
-            "country_citizenship_id": row.get("country_citizenship_id"),
             "country_citizenship_name": row.get("country_citizenship_name"),
             "country_citizenship_code": row.get("country_citizenship_code"),
         }

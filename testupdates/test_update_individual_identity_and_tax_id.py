@@ -13,7 +13,7 @@ def main() -> None:
         # last_name="User",
         birth_date="1974-04-28",     # YYYY-MM-DD
         # ssn_itin_type="SSN",
-        # ssn_itin="123-45-6789",
+        ssn_itin="900-70-1239",
         # language_id=1,               #languages.id
         # country_residence_id=31,    #countries.id
         # country_citizenship_id=31,  #countries.id

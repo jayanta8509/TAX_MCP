@@ -73,6 +73,92 @@ def _build_update_query(
 # Update individual identity & tax/residency
 
 @mcp.tool()
+def get_master_languages_and_countries() -> Dict[str, Any]:
+    """
+    Purpose:
+        Provide the MCP / chatbot with a complete view of the languages and
+        countries master data, so it can map between human-friendly names
+        (e.g. "India", "Brazil", "Japanese") and their corresponding IDs
+        in the database.
+
+        This function does NOT update anything. It is a read-only helper
+        that is typically called internally by the assistant before or
+        during update flows such as:
+            - "Change my current country of residence to India"
+            - "Set my language to Japanese"
+
+    Args:
+        None
+
+    Returns:
+        dict:
+            {
+                "languages": [
+                    {
+                        "id": int,
+                        "language": str,
+                        "status": int,
+                    },
+                    ...
+                ],
+                "countries": [
+                    {
+                        "id": int,
+                        "country_code": str | None,
+                        "country_phone_code": str | None,
+                        "country_name": str,
+                        "sort_order": int | None,
+                    },
+                    ...
+                ],
+            }
+
+    Example usage:
+        >>> master = get_master_languages_and_countries()
+        >>> langs = master["languages"]
+        >>> countries = master["countries"]
+
+    Example questions this function helps answer (for the bot, internally):
+        - "Which language_id corresponds to Japanese?"
+        - "Which country id corresponds to India or Brazil?"
+        - "What are all supported countries and languages in this system?"
+    """
+    with get_connection() as conn:
+        cursor = conn.cursor(dictionary=True)
+
+        cursor.execute(
+            """
+            SELECT
+                id,
+                language,
+                status
+            FROM languages
+            ORDER BY language ASC
+            """
+        )
+        languages = cursor.fetchall() or []
+
+        cursor.execute(
+            """
+            SELECT
+                id,
+                country_code,
+                country_phone_code,
+                country_name,
+                sort_order
+            FROM countries
+            ORDER BY country_name ASC
+            """
+        )
+        countries = cursor.fetchall() or []
+
+    return {
+        "languages": languages,
+        "countries": countries,
+    }
+
+
+@mcp.tool()
 def update_individual_identity_and_tax_id(
     client_id: int,
     reference: str,
