@@ -1,0 +1,384 @@
+{
+  "tasks": [
+    {
+      "task_id": 1,
+      "task_name": "REQUEST & RECEIVE INFORMATION",
+      "subtasks": [
+        {
+          "subtask_id": 1,
+          "subtask_name": "Personal Information",
+          "questions": [
+            {
+              "question_id": "1.1",
+              "question_text": "Can you confirm your full legal name?",
+              "field_name": "full_legal_name",
+              "data_type": "string",
+              "required": true,
+              "skip_if_exists": true,
+              "mcp_read_tool": "get_client_basic_profile",
+              "mcp_update_tool": "update_individual_identity_and_tax_id",
+              "validation": "non_empty"
+            },
+            {
+              "question_id": "1.2",
+              "question_text": "Please provide your date of birth.",
+              "field_name": "date_of_birth",
+              "data_type": "date",
+              "required": true,
+              "skip_if_exists": true,
+              "mcp_read_tool": "get_individual_identity_and_tax_id",
+              "mcp_update_tool": "update_individual_identity_and_tax_id",
+              "validation": "valid_date"
+            },
+            {
+              "question_id": "1.3",
+              "question_text": "What is your current U.S. address?",
+              "field_name": "us_address",
+              "data_type": "string",
+              "required": true,
+              "skip_if_exists": false,
+              "mcp_read_tool": "get_client_primary_contact",
+              "mcp_update_tool": "update_client_primary_contact_info",
+              "validation": "non_empty"
+            },
+            {
+              "question_id": "1.4",
+              "question_text": "Has your country of residence changed from last year?",
+              "field_name": "country_changed",
+              "data_type": "boolean",
+              "required": true,
+              "skip_if_exists": false,
+              "mcp_read_tool": "get_individual_residency_and_citizenship",
+              "condition": "previous_year_exists"
+            },
+            {
+              "question_id": "1.5",
+              "question_text": "Please share your updated country of residence.",
+              "field_name": "country_of_residence",
+              "data_type": "string",
+              "required": true,
+              "skip_if_exists": false,
+              "mcp_read_tool": "get_individual_residency_and_citizenship",
+              "mcp_update_tool": "update_individual_identity_and_tax_id",
+              "condition": "answer_1.4_is_yes",
+              "validation": "non_empty"
+            },
+            {
+              "question_id": "1.6",
+              "question_text": "What is your current occupation or source of U.S. income?",
+              "field_name": "occupation",
+              "data_type": "string",
+              "required": true,
+              "skip_if_exists": false,
+              "mcp_read_tool": "get_client_services_overview",
+              "mcp_update_tool": "update_individual_identity_and_tax_id",
+              "validation": "non_empty"
+            }
+          ]
+        },
+        {
+          "subtask_id": 2,
+          "subtask_name": "ITIN / Identification",
+          "questions": [
+            {
+              "question_id": "2.1",
+              "question_text": "Do you already have an ITIN number?",
+              "field_name": "has_itin",
+              "data_type": "boolean",
+              "required": true,
+              "skip_if_exists": false,
+              "mcp_read_tool": "get_individual_identity_and_tax_id"
+            },
+            {
+              "question_id": "2.2",
+              "question_text": "Please provide your ITIN number.",
+              "field_name": "itin_number",
+              "data_type": "string",
+              "required": true,
+              "skip_if_exists": true,
+              "mcp_read_tool": "get_individual_identity_and_tax_id",
+              "mcp_update_tool": "update_individual_identity_and_tax_id",
+              "condition": "answer_2.1_is_yes",
+              "validation": "valid_itin"
+            },
+            {
+              "question_id": "2.3",
+              "question_text": "Is this ITIN still valid?",
+              "field_name": "itin_valid",
+              "data_type": "boolean",
+              "required": true,
+              "skip_if_exists": false,
+              "condition": "has_itin"
+            },
+            {
+              "question_id": "2.4",
+              "question_text": "You'll need to apply for ITIN. Please upload FORM W7.",
+              "field_name": "w7_form_uploaded",
+              "data_type": "boolean",
+              "required": true,
+              "skip_if_exists": false,
+              "condition": "no_valid_itin"
+            }
+          ]
+        },
+        {
+          "subtask_id": 3,
+          "subtask_name": "Previous Year's Tax Return",
+          "questions": [
+            {
+              "question_id": "3.1",
+              "question_text": "We couldn't find your last year's 1040NR return. Do you have a copy?",
+              "field_name": "has_previous_return",
+              "data_type": "boolean",
+              "required": true,
+              "skip_if_exists": false
+            },
+            {
+              "question_id": "3.2",
+              "question_text": "Please upload your previous year's return.",
+              "field_name": "previous_return_uploaded",
+              "data_type": "boolean",
+              "required": true,
+              "skip_if_exists": false,
+              "condition": "answer_3.1_is_yes"
+            }
+          ]
+        },
+        {
+          "subtask_id": 4,
+          "subtask_name": "Income & Expense Statement",
+          "questions": [
+            {
+              "question_id": "4.1",
+              "question_text": "Do you have U.S. income or business for this financial year?",
+              "field_name": "has_us_income",
+              "data_type": "boolean",
+              "required": true,
+              "skip_if_exists": false
+            },
+            {
+              "question_id": "4.2",
+              "question_text": "Please upload your income and expense statement.",
+              "field_name": "income_statement_uploaded",
+              "data_type": "boolean",
+              "required": true,
+              "skip_if_exists": false,
+              "condition": "answer_4.1_is_yes"
+            },
+            {
+              "question_id": "4.3",
+              "question_text": "Would you like us to review your statement before proceeding?",
+              "field_name": "review_requested",
+              "data_type": "boolean",
+              "required": false,
+              "skip_if_exists": false,
+              "condition": "answer_4.2_is_yes"
+            }
+          ]
+        },
+        {
+          "subtask_id": 5,
+          "subtask_name": "Real Estate Information",
+          "questions": [
+            {
+              "question_id": "5.1",
+              "question_text": "Did you own or sell any U.S. real estate this year?",
+              "field_name": "has_real_estate",
+              "data_type": "boolean",
+              "required": true,
+              "skip_if_exists": false
+            },
+            {
+              "question_id": "5.2",
+              "question_text": "Please upload your real estate related documents (Quick Claim Deed, Property Tax, HUD, etc.).",
+              "field_name": "real_estate_docs_uploaded",
+              "data_type": "boolean",
+              "required": true,
+              "skip_if_exists": false,
+              "condition": "answer_5.1_is_yes"
+            },
+            {
+              "question_id": "5.3",
+              "question_text": "Do you have any mortgage on these properties?",
+              "field_name": "has_mortgage",
+              "data_type": "boolean",
+              "required": true,
+              "skip_if_exists": false,
+              "condition": "answer_5.1_is_yes"
+            }
+          ]
+        },
+        {
+          "subtask_id": 6,
+          "subtask_name": "Get FORM 1040NR Signed",
+          "questions": [
+            {
+              "question_id": "6.1",
+              "question_text": "Please review and e-sign your 1040NR return.",
+              "field_name": "form_1040nr_signed",
+              "data_type": "boolean",
+              "required": true,
+              "skip_if_exists": false
+            },
+            {
+              "question_id": "6.2",
+              "question_text": "Thank you! Your signed form is uploaded successfully.",
+              "field_name": "signature_confirmed",
+              "data_type": "boolean",
+              "required": true,
+              "skip_if_exists": false,
+              "condition": "answer_6.1_is_yes"
+            }
+          ]
+        },
+        {
+          "subtask_id": 7,
+          "subtask_name": "Collect FORM W7",
+          "questions": [
+            {
+              "question_id": "7.1",
+              "question_text": "As you don't have an ITIN, please complete FORM W7 for application.",
+              "field_name": "w7_completed",
+              "data_type": "boolean",
+              "required": true,
+              "skip_if_exists": false,
+              "condition": "no_valid_itin"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task_id": 2,
+      "task_name": "ADD-ON SERVICES",
+      "subtasks": [
+        {
+          "subtask_id": 8,
+          "subtask_name": "Income Forms",
+          "questions": [
+            {
+              "question_id": "8.1",
+              "question_text": "Last year you filed FORM 1042-S. Would you like to include it this year?",
+              "field_name": "include_1042s",
+              "data_type": "boolean",
+              "required": false,
+              "skip_if_exists": false,
+              "condition": "previous_year_had_1042s"
+            },
+            {
+              "question_id": "8.2",
+              "question_text": "Please upload FORM 1042-S.",
+              "field_name": "form_1042s_uploaded",
+              "data_type": "boolean",
+              "required": true,
+              "skip_if_exists": false,
+              "condition": "answer_8.1_is_yes"
+            }
+          ]
+        },
+        {
+          "subtask_id": 9,
+          "subtask_name": "Investment Declarations",
+          "questions": [
+            {
+              "question_id": "9.1",
+              "question_text": "Do you have investment income this year?",
+              "field_name": "has_investment_income",
+              "data_type": "boolean",
+              "required": false,
+              "skip_if_exists": false
+            },
+            {
+              "question_id": "9.2",
+              "question_text": "Please upload your investment-related forms (1099-DIV, 1099-INT, etc.).",
+              "field_name": "investment_forms_uploaded",
+              "data_type": "boolean",
+              "required": true,
+              "skip_if_exists": false,
+              "condition": "answer_9.1_is_yes"
+            }
+          ]
+        },
+        {
+          "subtask_id": 10,
+          "subtask_name": "Freelance Income",
+          "questions": [
+            {
+              "question_id": "10.1",
+              "question_text": "Did you receive any freelance or contract income (Form 1099-NEC/MISC)?",
+              "field_name": "has_freelance_income",
+              "data_type": "boolean",
+              "required": false,
+              "skip_if_exists": false
+            },
+            {
+              "question_id": "10.2",
+              "question_text": "Please upload Form 1099-NEC or 1099-MISC.",
+              "field_name": "freelance_forms_uploaded",
+              "data_type": "boolean",
+              "required": true,
+              "skip_if_exists": false,
+              "condition": "answer_10.1_is_yes"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task_id": 3,
+      "task_name": "INVOICE GENERATION",
+      "subtasks": [
+        {
+          "subtask_id": 15,
+          "subtask_name": "Generate Invoice",
+          "questions": [
+            {
+              "question_id": "15.1",
+              "question_text": "Here's your calculated fee based on selected add-ons. Do you want to proceed with payment?",
+              "field_name": "payment_confirmed",
+              "data_type": "boolean",
+              "required": true,
+              "skip_if_exists": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "task_id": 4,
+      "task_name": "REVIEW & SUBMISSION",
+      "subtasks": [
+        {
+          "subtask_id": 16,
+          "subtask_name": "Final Review",
+          "questions": [
+            {
+              "question_id": "16.1",
+              "question_text": "Would you like to review all uploaded documents before submission?",
+              "field_name": "review_documents",
+              "data_type": "boolean",
+              "required": true,
+              "skip_if_exists": false
+            },
+            {
+              "question_id": "16.2",
+              "question_text": "Please review and confirm all details are correct.",
+              "field_name": "details_confirmed",
+              "data_type": "boolean",
+              "required": true,
+              "skip_if_exists": false
+            },
+            {
+              "question_id": "16.3",
+              "question_text": "Do you authorize us to file your 1040NR return?",
+              "field_name": "filing_authorized",
+              "data_type": "boolean",
+              "required": true,
+              "skip_if_exists": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
