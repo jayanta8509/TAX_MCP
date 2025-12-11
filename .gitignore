@@ -10,4 +10,4 @@ smarttaxgudie.bestworks.cloud
 /home/bestworks-smarttaxgudie/htdocs/smarttaxgudie.bestworks.cloud
 
 
-nohup uvicorn app:app --host 0.0.0.0 --port 8002 --workers 4 > app.log 2>&1 &
+nohup uvicorn app:app --host 0.0.0.0 --port 8000 --workers 4 > app.log 2>&1 &

@@ -43,18 +43,22 @@ class ConversationalWorkflowHandler:
             if match:
                 return match.group(0)
         
-        # For ITIN, extract ITIN pattern
+        # For ITIN, extract ITIN pattern (with or without dashes)
         if field_name == 'itin_number':
-            itin_pattern = r'9\d{2}-\d{2}-\d{4}'
+            # Match 9 digits with optional dashes
+            itin_pattern = r'\b9\d{2}[-]?\d{2}[-]?\d{4}\b'
             match = re.search(itin_pattern, message)
             if match:
-                return match.group(0)
+                raw_itin = match.group(0).replace('-', '')
+                # Format as 9XX-XX-XXXX
+                return f"{raw_itin[:3]}-{raw_itin[3:5]}-{raw_itin[5:]}"
         
         # Common prefixes to remove (expanded to handle rejections)
         prefixes_to_remove = [
             r"^no,?\s*it'?s\s+",
             r"^no,?\s*my\s+\w+\s+is\s+",
             r"^no,?\s*the\s+correct\s+(?:value|name|answer)\s+is\s+",
+            r"^no,?\s*i\s+want\s+to\s+change\s+(?:the\s+)?(?:name|address|value|it)?(?:\s+to)?\s+",
             r"^no,?\s*",  # Remove leading "no" with optional comma and spaces
             r"^it'?s\s+",
             r"^the\s+correct\s+(?:value|name|answer)\s+is\s+",
@@ -62,6 +66,7 @@ class ConversationalWorkflowHandler:
             r"^(?:actually|correct)\s+",
             r"^change\s+(?:it\s+)?to\s+",
             r"^update\s+(?:it\s+)?to\s+",
+            r"^i\s+want\s+to\s+change\s+(?:the\s+)?(?:name|address|value|it)?(?:\s+to)?\s+",
         ]
         
         cleaned = message
@@ -278,6 +283,27 @@ class ConversationalWorkflowHandler:
                 current_question.get('data_type'),
                 current_question.get('field_name')
             )
+            
+            # Special handling for Boolean questions where user provides the value instead of Yes/No
+            # Example: Q: "Do you have an ITIN?" -> A: "929-29-2929" (implies Yes)
+            if current_question.get('data_type') == 'boolean':
+                # Check for ITIN pattern if the question is about ITIN
+                if 'itin' in current_question.get('field_name', '').lower() or 'itin' in current_question.get('question_text', '').lower():
+                    # Attempt to extract ITIN using our helper (pass 'itin_number' as field_name to trigger regex)
+                    potential_itin = self._extract_value_from_message(user_message, 'string', 'itin_number')
+                    if potential_itin != user_message and '9' in potential_itin: # Heuristic: if extraction changed something or looks like ITIN
+                         import re
+                         if re.match(r'\b9\d{2}[-]?\d{2}[-]?\d{4}\b', potential_itin.replace('-', '')):
+                             # It's a valid ITIN. Treat directly as YES, and assume we might want to save the ITIN.
+                             # For now, just treating as YES is sufficient to unblock the flow.
+                             new_value = "yes"
+                             
+                             # OPTIONAL: Save the ITIN directly to the database for the *next* question
+                             # This requires knowing the next question's ID or the field name for ITIN.
+                             # For safety, we'll just return "yes" so the workflow proceeds to "Please provide your ITIN",
+                             # where the user might have to re-enter it, OR we can be smarter.
+                             # But "yes" unblocks them from the invalid boolean error.
+                             pass
             
             # Validate the new value
             validation = self.qm.validate_answer(current_q_id, new_value)
