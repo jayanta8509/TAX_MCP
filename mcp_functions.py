@@ -47,7 +47,7 @@ def _resolve_reference_id(
     return client_id
 
 def _resolve_reference_id_from_practice(
-    conn: "MySQLConnection",
+    conn: get_connection,
     practice_id: str,
     reference: str,
 ) -> Optional[int]:
