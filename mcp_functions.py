@@ -430,6 +430,66 @@ def get_client_internal_data(
             "practice_id_value": row.get("practice_id"),
         }
 
+@mcp.tool()
+def get_client_occupation_and_income_source(
+    practice_id: str,
+    reference: str,
+) -> Optional[Dict[str, Any]]:
+    """
+    Purpose:
+        Fetch occupation and source_of_us_income for a client (company/individual)
+        using practice_id + reference (via internal_data).
+
+    Args:
+        practice_id (str):
+            The practice_id of the client (stored in internal_data.practice_id)
+        reference (str):
+            "company" or "individual"
+
+    Returns:
+        dict | None:
+            Example:
+            {
+                "reference": "individual",
+                "practice_id": "ZARUKAINC2",
+                "reference_id": 35,
+                "occupation": "Self Employed",
+                "source_of_us_income": "Salary / Services rendered in the United States"
+            }
+    """
+    ref_type = reference.lower().strip()
+    table, pk_col = _get_table_and_pk(ref_type)
+
+    with get_connection() as conn:
+        resolved_id = _resolve_reference_id_from_practice(conn, practice_id, ref_type)
+        if resolved_id is None:
+            return None
+
+        cursor = conn.cursor(dictionary=True)
+
+        query = f"""
+            SELECT
+                {pk_col} AS reference_id,
+                occupation,
+                source_of_us_income
+            FROM {table}
+            WHERE {pk_col} = %s
+            LIMIT 1
+        """
+        cursor.execute(query, (resolved_id,))
+        row = cursor.fetchone()
+
+        if not row:
+            return None
+
+        return {
+            "reference": ref_type,
+            "practice_id": practice_id,
+            "reference_id": row.get("reference_id"),
+            "occupation": row.get("occupation"),
+            "source_of_us_income": row.get("source_of_us_income"),
+        }
+
 
 # //new-func
 

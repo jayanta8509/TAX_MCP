@@ -562,6 +562,87 @@ def update_client_internal_assignments(
             "message": "Update applied." if cursor2.rowcount > 0 else "No rows updated.",
         }
 
+@mcp.tool()
+def update_client_occupation_and_income_source(
+    practice_id: str,
+    reference: str,
+    occupation: Optional[str] = None,
+    source_of_us_income: Optional[str] = None,
+) -> Dict[str, Any]:
+    """
+    Purpose:
+        Update occupation and/or source_of_us_income for a client (company/individual)
+        using practice_id + reference.
+
+    Args:
+        practice_id (str):
+            internal_data.practice_id of the client
+        reference (str):
+            "company" or "individual"
+        occupation (str | None):
+            New occupation value
+        source_of_us_income (str | None):
+            New source_of_us_income value
+
+    Returns:
+        dict:
+            {
+                "reference": "company" | "individual",
+                "practice_id": <practice_id>,
+                "reference_id": <company.company_id or individual.id>,
+                "success": bool,
+                "updated_fields": [...],
+                "rows_affected": int,
+                "message": str,
+            }
+    """
+    ref_type = reference.lower().strip()
+    table, pk_col = _get_table_and_pk(ref_type)
+
+    with get_connection() as conn:
+        resolved_id = _resolve_reference_id_from_practice(conn, practice_id, ref_type)
+        if resolved_id is None:
+            return {
+                "reference": ref_type,
+                "practice_id": practice_id,
+                "success": False,
+                "updated_fields": [],
+                "rows_affected": 0,
+                "message": "No matching internal_data found for this practice_id + reference.",
+            }
+
+        fields: Dict[str, Any] = {}
+        if occupation is not None:
+            fields["occupation"] = occupation
+        if source_of_us_income is not None:
+            fields["source_of_us_income"] = source_of_us_income
+
+        built = _build_update_query(table, pk_col, resolved_id, fields)
+        if not built:
+            return {
+                "reference": ref_type,
+                "practice_id": practice_id,
+                "reference_id": resolved_id,
+                "success": False,
+                "updated_fields": [],
+                "rows_affected": 0,
+                "message": "No fields provided to update.",
+            }
+
+        query, params = built
+        cursor = conn.cursor()
+        cursor.execute(query, params)
+        conn.commit()
+
+        return {
+            "reference": ref_type,
+            "practice_id": practice_id,
+            "reference_id": resolved_id,
+            "success": cursor.rowcount > 0,
+            "updated_fields": list(fields.keys()),
+            "rows_affected": cursor.rowcount,
+            "message": "Update applied." if cursor.rowcount > 0 else "No rows updated.",
+        }
 
 if __name__ == "__main__":
     mcp.run()
