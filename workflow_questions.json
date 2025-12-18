@@ -70,8 +70,8 @@
               "data_type": "string",
               "required": true,
               "skip_if_exists": false,
-              "mcp_read_tool": "get_client_services_overview",
-              "mcp_update_tool": "update_individual_identity_and_tax_id",
+              "mcp_read_tool": "get_individual_identity_and_tax_id",
+              "mcp_update_tool": "update_client_occupation_and_income_source",
               "validation": "non_empty"
             }
           ]

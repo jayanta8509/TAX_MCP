@@ -1,3 +1,4 @@
+from ast import Str
 import os
 from mcp.server.fastmcp import FastMCP
 from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
@@ -77,7 +78,7 @@ def _resolve_reference_id_from_practice(
 # func
 @mcp.tool()
 def get_client_basic_profile(
-    practice_id: int,
+    practice_id: str,
     reference: str,
 ) -> Optional[Dict[str, Any]]:
     """
@@ -188,7 +189,7 @@ def get_client_basic_profile(
 
 @mcp.tool()
 def get_client_primary_contact(
-    practice_id: int,
+    practice_id: str,
     reference: str,
 ) -> Optional[Dict[str, Any]]:
     """
@@ -248,7 +249,7 @@ def get_client_primary_contact(
 
 @mcp.tool()
 def get_client_all_contacts(
-    practice_id: int,
+    practice_id: str,
     reference: str,
 ) -> List[Dict[str, Any]]:
     """
@@ -300,7 +301,7 @@ def get_client_all_contacts(
 
 @mcp.tool()
 def get_client_financial_summary(
-    practice_id: int,
+    practice_id: str,
     reference: str,
 ) -> Optional[Dict[str, Any]]:
     """
@@ -342,7 +343,7 @@ def get_client_financial_summary(
 
 @mcp.tool()
 def get_client_mail_service_info(
-    practice_id: int,
+    practice_id: str,
     reference: str,
 ) -> Optional[Dict[str, Any]]:
     """
@@ -390,7 +391,7 @@ def get_client_mail_service_info(
 
 @mcp.tool()
 def get_client_internal_data(
-    practice_id: int,
+    practice_id: str,
     reference: str,
 ) -> Optional[Dict[str, Any]]:
     """
@@ -495,7 +496,7 @@ def get_client_occupation_and_income_source(
 
 @mcp.tool()
 def get_client_fiscal_profile(
-    practice_id: int,
+    practice_id: str,
     reference: str,
 ) -> Optional[Dict[str, Any]]:
     """
@@ -613,7 +614,7 @@ def get_client_fiscal_profile(
 
 @mcp.tool()
 def get_client_services_overview(
-    practice_id: int,
+    practice_id: str,
     reference: str,
 ) -> Optional[Dict[str, Any]]:
     
@@ -730,7 +731,7 @@ def get_client_services_overview(
 
 @mcp.tool()
 def get_client_status_and_history(
-    practice_id: int,
+    practice_id: str,
     reference: str,
 ) -> Optional[Dict[str, Any]]:
     
@@ -817,7 +818,7 @@ def get_client_status_and_history(
 
 @mcp.tool()
 def get_client_origin_and_referral_info(
-    practice_id: int,
+    practice_id: str,
     reference: str,
 ) -> Optional[Dict[str, Any]]:
     
@@ -916,7 +917,7 @@ def get_client_origin_and_referral_info(
 
 @mcp.tool()
 def get_client_team_assignment_details(
-    practice_id: int,
+    practice_id: str,
     reference: str,
 ) -> Optional[Dict[str, Any]]:
     """
@@ -1022,7 +1023,7 @@ def get_client_team_assignment_details(
 
 @mcp.tool()
 def get_individual_residency_and_citizenship(
-    practice_id: int,
+    practice_id: str,
     reference: str,
 ) -> Optional[Dict[str, Any]]:
     """
@@ -1097,7 +1098,7 @@ def get_individual_residency_and_citizenship(
 
 @mcp.tool()
 def get_individual_identity_and_tax_id(
-    practice_id: int,
+    practice_id: str,
     reference: str,
 ) -> Optional[Dict[str, Any]]:
     """

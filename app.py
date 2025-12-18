@@ -37,20 +37,20 @@ app.add_middleware(
 
 class TaxFilingRequest(BaseModel):
     user_id: str
-    client_id: int  # Integer primary key
+    client_id: str  # str primary key
     reference: str  # "company" or "individual"
     query: str
     use_agent: bool = True
 
 class WelcomeMessageRequest(BaseModel):
     user_id: str
-    client_id: int  # Integer primary key
+    client_id: str  # str primary key
     reference: str  # "company" or "individual"
 
 # Conversational Workflow Model (Single Endpoint)
 class ConversationalWorkflowRequest(BaseModel):
     user_id: str
-    client_id: int
+    client_id: str
     reference: str  # "individual" or "company"
     query: str  # User's message/answer
     use_agent: bool = True  # Keep for compatibility

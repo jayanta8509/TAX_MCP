@@ -5,7 +5,7 @@ This bypasses the MCP server and tests the database functions directly
 from mcp_functions import get_individual_identity_and_tax_id
 
 def test_individual_identity_and_tax_id():
-    client_id = 8
+    client_id = "EUSEBIMARI1"
     reference = "individual"
     result = get_individual_identity_and_tax_id(client_id, reference)
     print(result)

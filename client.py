@@ -598,6 +598,10 @@ async def ask_question(question, style_preference=None, user_id="default_user", 
     15. update_client_internal_assignments()
         - Use for: updating internal assignments
 
+    16. update_client_occupation_and_income_source()
+        - Use for: updating occupation and source of US income
+
+
     **RESPONSE FORMAT:**
     - Be conversational and professional
     - Ask ONE question at a time (don't overwhelm)

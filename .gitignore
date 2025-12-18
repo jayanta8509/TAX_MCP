@@ -4,6 +4,9 @@ env
 venv
 /venv
 __pycache__
+test_client_primary_contact.py
+test_direct.py
+project md file
 
 smarttaxgudie.bestworks.cloud
 191.101.0.166
