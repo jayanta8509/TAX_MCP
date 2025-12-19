@@ -466,137 +466,137 @@ def get_client_itin_number(
             "itin": itin,
         }
 
-@mcp.tool()
-def get_company_fein_number(
-    practice_id: str,
-    reference: str,
-) -> Optional[Dict[str, Any]]:
-    """
-    Purpose:
-        Retrieve ONLY the FEIN for a company client.
-    Args:
-        practice_id (str):
-            The practice_id of the company (stored in internal_data.practice_id).
-        reference (str):
-            Must be "company". Otherwise returns None.
+# @mcp.tool()
+# def get_company_fein_number(
+#     practice_id: str,
+#     reference: str,
+# ) -> Optional[Dict[str, Any]]:
+#     """
+#     Purpose:
+#         Retrieve ONLY the FEIN for a company client.
+#     Args:
+#         practice_id (str):
+#             The practice_id of the company (stored in internal_data.practice_id).
+#         reference (str):
+#             Must be "company". Otherwise returns None.
 
-    Returns:
-        dict | None:
-            {
-                "reference": "company",
-                "practice_id": "<practice_id>",
-                "reference_id": <internal_data.reference_id>,
-                "fein": "<str|None>"
-            }
-    """
-    ref_type = reference.lower().strip()
-    if ref_type != "company":
-        return None
+#     Returns:
+#         dict | None:
+#             {
+#                 "reference": "company",
+#                 "practice_id": "<practice_id>",
+#                 "reference_id": <internal_data.reference_id>,
+#                 "fein": "<str|None>"
+#             }
+#     """
+#     ref_type = reference.lower().strip()
+#     if ref_type != "company":
+#         return None
 
-    with get_connection() as conn:
-        resolved_id = _resolve_reference_id_from_practice(conn, practice_id, ref_type)
-        if resolved_id is None:
-            return None
+#     with get_connection() as conn:
+#         resolved_id = _resolve_reference_id_from_practice(conn, practice_id, ref_type)
+#         if resolved_id is None:
+#             return None
 
-        cursor = conn.cursor(dictionary=True)
+#         cursor = conn.cursor(dictionary=True)
 
-        cursor.execute(
-            """
-            SELECT id AS reference_id, fein
-            FROM company
-            WHERE id = %s
-            LIMIT 1
-            """,
-            (resolved_id,),
-        )
-        row = cursor.fetchone()
+#         cursor.execute(
+#             """
+#             SELECT id AS reference_id, fein
+#             FROM company
+#             WHERE id = %s
+#             LIMIT 1
+#             """,
+#             (resolved_id,),
+#         )
+#         row = cursor.fetchone()
 
-        if not row:
-            cursor.execute(
-                """
-                SELECT company_id AS reference_id, fein
-                FROM company
-                WHERE company_id = %s
-                LIMIT 1
-                """,
-                (resolved_id,),
-            )
-            row = cursor.fetchone()
+#         if not row:
+#             cursor.execute(
+#                 """
+#                 SELECT company_id AS reference_id, fein
+#                 FROM company
+#                 WHERE company_id = %s
+#                 LIMIT 1
+#                 """,
+#                 (resolved_id,),
+#             )
+#             row = cursor.fetchone()
 
-        if not row:
-            return None
+#         if not row:
+#             return None
 
-        return {
-            "reference": "company",
-            "practice_id": practice_id,
-            "reference_id": row.get("reference_id"),
-            "fein": row.get("fein"),
-        }
+#         return {
+#             "reference": "company",
+#             "practice_id": practice_id,
+#             "reference_id": row.get("reference_id"),
+#             "fein": row.get("fein"),
+#         }
 
-@mcp.tool()
-def get_company_business_description(
-    practice_id: str,
-    reference: str,
-) -> Optional[Dict[str, Any]]:
-    """
-    Purpose:
-        Retrieve the business description for a company client.
-        This answers questions like:
-        "Can you describe what my business does?"
+# @mcp.tool()
+# def get_company_business_description(
+#     practice_id: str,
+#     reference: str,
+# ) -> Optional[Dict[str, Any]]:
+#     """
+#     Purpose:
+#         Retrieve the business description for a company client.
+#         This answers questions like:
+#         "Can you describe what my business does?"
 
-    Args:
-        practice_id (str):
-            The practice_id of the company (stored in internal_data.practice_id).
-        reference (str):
-            Must be "company". For any other value, the function returns None.
+#     Args:
+#         practice_id (str):
+#             The practice_id of the company (stored in internal_data.practice_id).
+#         reference (str):
+#             Must be "company". For any other value, the function returns None.
 
-    Returns:
-        dict | None:
-            Example:
-            {
-                "reference": "company",
-                "practice_id": "TAX-2024-001",
-                "reference_id": 1225,
-                "business_description": "We provide IT consulting and cloud services."
-            }
+#     Returns:
+#         dict | None:
+#             Example:
+#             {
+#                 "reference": "company",
+#                 "practice_id": "TAX-2024-001",
+#                 "reference_id": 1225,
+#                 "business_description": "We provide IT consulting and cloud services."
+#             }
 
-            Returns None if:
-            - reference is not "company"
-            - no matching company is found
-    """
-    ref_type = reference.lower()
-    if ref_type != "company":
-        return None
+#             Returns None if:
+#             - reference is not "company"
+#             - no matching company is found
+#     """
+#     ref_type = reference.lower()
+#     if ref_type != "company":
+#         return None
 
-    table, pk_col = _get_table_and_pk(ref_type)
+#     table, pk_col = _get_table_and_pk(ref_type)
 
-    with get_connection() as conn:
-        resolved_id = _resolve_reference_id_from_practice(conn, practice_id, ref_type)
-        if resolved_id is None:
-            return None
+#     with get_connection() as conn:
+#         resolved_id = _resolve_reference_id_from_practice(conn, practice_id, ref_type)
+#         if resolved_id is None:
+#             return None
 
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute(
-            f"""
-            SELECT
-                {pk_col} AS reference_id,
-                business_description
-            FROM company
-            WHERE {pk_col} = %s
-            LIMIT 1
-            """,
-            (resolved_id,),
-        )
-        row = cursor.fetchone()
-        if not row:
-            return None
+#         cursor = conn.cursor(dictionary=True)
+#         cursor.execute(
+#             f"""
+#             SELECT
+#                 {pk_col} AS reference_id,
+#                 business_description
+#             FROM company
+#             WHERE {pk_col} = %s
+#             LIMIT 1
+#             """,
+#             (resolved_id,),
+#         )
+#         row = cursor.fetchone()
+#         if not row:
+#             return None
 
-        return {
-            "reference": "company",
-            "practice_id": practice_id,
-            "reference_id": row["reference_id"],
-            "business_description": row.get("business_description"),
-        }
+#         return {
+#             "reference": "company",
+#             "practice_id": practice_id,
+#             "reference_id": row["reference_id"],
+#             "business_description": row.get("business_description"),
+#         }
 
 if __name__ == "__main__":
     mcp.run()

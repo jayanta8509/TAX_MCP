@@ -632,163 +632,163 @@ def update_client_itin_number(
         }
 
 
-# UPDATE: Company FEIN
-@mcp.tool()
-def update_company_fein_number(
-    practice_id: str,
-    reference: str,
-    fein: str,
-) -> Dict[str, Any]:
-    """
-    Purpose:
-        Update ONLY the FEIN value for a company client.
+# # UPDATE: Company FEIN
+# @mcp.tool()
+# def update_company_fein_number(
+#     practice_id: str,
+#     reference: str,
+#     fein: str,
+# ) -> Dict[str, Any]:
+#     """
+#     Purpose:
+#         Update ONLY the FEIN value for a company client.
 
-    Args:
-        practice_id (str): internal_data.practice_id
-        reference (str): must be "company"
-        fein (str): FEIN value to store
+#     Args:
+#         practice_id (str): internal_data.practice_id
+#         reference (str): must be "company"
+#         fein (str): FEIN value to store
 
-    Returns:
-        dict:
-            {
-              "reference": "company",
-              "practice_id": "<practice_id>",
-              "success": bool,
-              "updated_fields": ["fein"],
-              "rows_affected": int,
-              "message": str
-            }
-    """
-    ref_type = reference.lower().strip()
-    if ref_type != "company":
-        return {
-            "reference": ref_type,
-            "practice_id": practice_id,
-            "success": False,
-            "updated_fields": [],
-            "rows_affected": 0,
-            "message": "update_company_fein_number only supports reference='company'.",
-        }
+#     Returns:
+#         dict:
+#             {
+#               "reference": "company",
+#               "practice_id": "<practice_id>",
+#               "success": bool,
+#               "updated_fields": ["fein"],
+#               "rows_affected": int,
+#               "message": str
+#             }
+#     """
+#     ref_type = reference.lower().strip()
+#     if ref_type != "company":
+#         return {
+#             "reference": ref_type,
+#             "practice_id": practice_id,
+#             "success": False,
+#             "updated_fields": [],
+#             "rows_affected": 0,
+#             "message": "update_company_fein_number only supports reference='company'.",
+#         }
 
-    with get_connection() as conn:
-        resolved_id = _resolve_reference_id_from_practice(conn, practice_id, ref_type)
-        if resolved_id is None:
-            return {
-                "reference": "company",
-                "practice_id": practice_id,
-                "success": False,
-                "updated_fields": [],
-                "rows_affected": 0,
-                "message": "Company record not found for this practice_id.",
-            }
+#     with get_connection() as conn:
+#         resolved_id = _resolve_reference_id_from_practice(conn, practice_id, ref_type)
+#         if resolved_id is None:
+#             return {
+#                 "reference": "company",
+#                 "practice_id": practice_id,
+#                 "success": False,
+#                 "updated_fields": [],
+#                 "rows_affected": 0,
+#                 "message": "Company record not found for this practice_id.",
+#             }
 
-        pk_info = _resolve_company_pk_and_row(conn, resolved_id)
-        if not pk_info:
-            return {
-                "reference": "company",
-                "practice_id": practice_id,
-                "success": False,
-                "updated_fields": [],
-                "rows_affected": 0,
-                "message": "Company record not found.",
-            }
+#         pk_info = _resolve_company_pk_and_row(conn, resolved_id)
+#         if not pk_info:
+#             return {
+#                 "reference": "company",
+#                 "practice_id": practice_id,
+#                 "success": False,
+#                 "updated_fields": [],
+#                 "rows_affected": 0,
+#                 "message": "Company record not found.",
+#             }
 
-        built = _build_update_query("company", pk_info["pk_col"], pk_info["pk_value"], {"fein": fein})
-        query, params = built
-        cur = conn.cursor()
-        cur.execute(query, params)
-        conn.commit()
+#         built = _build_update_query("company", pk_info["pk_col"], pk_info["pk_value"], {"fein": fein})
+#         query, params = built
+#         cur = conn.cursor()
+#         cur.execute(query, params)
+#         conn.commit()
 
-        return {
-            "reference": "company",
-            "practice_id": practice_id,
-            "success": cur.rowcount > 0,
-            "updated_fields": ["fein"],
-            "rows_affected": cur.rowcount,
-            "message": "Update applied." if cur.rowcount > 0 else "No rows updated.",
-        }
+#         return {
+#             "reference": "company",
+#             "practice_id": practice_id,
+#             "success": cur.rowcount > 0,
+#             "updated_fields": ["fein"],
+#             "rows_affected": cur.rowcount,
+#             "message": "Update applied." if cur.rowcount > 0 else "No rows updated.",
+#         }
 
 
-# UPDATE: Company business_description
-@mcp.tool()
-def update_company_business_description(
-    practice_id: str,
-    reference: str,
-    business_description: str,
-) -> Dict[str, Any]:
-    """
-    Purpose:
-        Update ONLY the business_description field for a company client.
+# # UPDATE: Company business_description
+# @mcp.tool()
+# def update_company_business_description(
+#     practice_id: str,
+#     reference: str,
+#     business_description: str,
+# ) -> Dict[str, Any]:
+#     """
+#     Purpose:
+#         Update ONLY the business_description field for a company client.
 
-    Args:
-        practice_id (str): internal_data.practice_id
-        reference (str): must be "company"
-        business_description (str): description to store
+#     Args:
+#         practice_id (str): internal_data.practice_id
+#         reference (str): must be "company"
+#         business_description (str): description to store
 
-    Returns:
-        dict:
-            {
-              "reference": "company",
-              "practice_id": "<practice_id>",
-              "success": bool,
-              "updated_fields": ["business_description"],
-              "rows_affected": int,
-              "message": str
-            }
-    """
-    ref_type = reference.lower().strip()
-    if ref_type != "company":
-        return {
-            "reference": ref_type,
-            "practice_id": practice_id,
-            "success": False,
-            "updated_fields": [],
-            "rows_affected": 0,
-            "message": "update_company_business_description only supports reference='company'.",
-        }
+#     Returns:
+#         dict:
+#             {
+#               "reference": "company",
+#               "practice_id": "<practice_id>",
+#               "success": bool,
+#               "updated_fields": ["business_description"],
+#               "rows_affected": int,
+#               "message": str
+#             }
+#     """
+#     ref_type = reference.lower().strip()
+#     if ref_type != "company":
+#         return {
+#             "reference": ref_type,
+#             "practice_id": practice_id,
+#             "success": False,
+#             "updated_fields": [],
+#             "rows_affected": 0,
+#             "message": "update_company_business_description only supports reference='company'.",
+#         }
 
-    with get_connection() as conn:
-        resolved_id = _resolve_reference_id_from_practice(conn, practice_id, ref_type)
-        if resolved_id is None:
-            return {
-                "reference": "company",
-                "practice_id": practice_id,
-                "success": False,
-                "updated_fields": [],
-                "rows_affected": 0,
-                "message": "Company record not found for this practice_id.",
-            }
+#     with get_connection() as conn:
+#         resolved_id = _resolve_reference_id_from_practice(conn, practice_id, ref_type)
+#         if resolved_id is None:
+#             return {
+#                 "reference": "company",
+#                 "practice_id": practice_id,
+#                 "success": False,
+#                 "updated_fields": [],
+#                 "rows_affected": 0,
+#                 "message": "Company record not found for this practice_id.",
+#             }
 
-        pk_info = _resolve_company_pk_and_row(conn, resolved_id)
-        if not pk_info:
-            return {
-                "reference": "company",
-                "practice_id": practice_id,
-                "success": False,
-                "updated_fields": [],
-                "rows_affected": 0,
-                "message": "Company record not found.",
-            }
+#         pk_info = _resolve_company_pk_and_row(conn, resolved_id)
+#         if not pk_info:
+#             return {
+#                 "reference": "company",
+#                 "practice_id": practice_id,
+#                 "success": False,
+#                 "updated_fields": [],
+#                 "rows_affected": 0,
+#                 "message": "Company record not found.",
+#             }
 
-        built = _build_update_query(
-            "company",
-            pk_info["pk_col"],
-            pk_info["pk_value"],
-            {"business_description": business_description},
-        )
-        query, params = built
-        cur = conn.cursor()
-        cur.execute(query, params)
-        conn.commit()
+#         built = _build_update_query(
+#             "company",
+#             pk_info["pk_col"],
+#             pk_info["pk_value"],
+#             {"business_description": business_description},
+#         )
+#         query, params = built
+#         cur = conn.cursor()
+#         cur.execute(query, params)
+#         conn.commit()
 
-        return {
-            "reference": "company",
-            "practice_id": practice_id,
-            "success": cur.rowcount > 0,
-            "updated_fields": ["business_description"],
-            "rows_affected": cur.rowcount,
-            "message": "Update applied." if cur.rowcount > 0 else "No rows updated.",
-        }
+#         return {
+#             "reference": "company",
+#             "practice_id": practice_id,
+#             "success": cur.rowcount > 0,
+#             "updated_fields": ["business_description"],
+#             "rows_affected": cur.rowcount,
+#             "message": "Update applied." if cur.rowcount > 0 else "No rows updated.",
+#         }
 
 
 if __name__ == "__main__":

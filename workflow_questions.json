@@ -15,8 +15,8 @@
               "data_type": "string",
               "required": true,
               "skip_if_exists": true,
-              "mcp_read_tool": "get_client_basic_profile",
-              "mcp_update_tool": "update_individual_identity_and_tax_id",
+              "mcp_read_tool": "get_client_full_legal_name",
+              "mcp_update_tool": "update_client_full_legal_name",
               "validation": "non_empty"
             },
             {
@@ -26,8 +26,8 @@
               "data_type": "date",
               "required": true,
               "skip_if_exists": true,
-              "mcp_read_tool": "get_individual_identity_and_tax_id",
-              "mcp_update_tool": "update_individual_identity_and_tax_id",
+              "mcp_read_tool": "get_client_date_of_birth",
+              "mcp_update_tool": "update_client_date_of_birth",
               "validation": "valid_date"
             },
             {
@@ -37,8 +37,8 @@
               "data_type": "string",
               "required": true,
               "skip_if_exists": false,
-              "mcp_read_tool": "get_client_primary_contact",
-              "mcp_update_tool": "update_client_primary_contact_info",
+              "mcp_read_tool": "get_client_current_us_address",
+              "mcp_update_tool": "update_client_current_us_address",
               "validation": "non_empty"
             },
             {
@@ -70,8 +70,8 @@
               "data_type": "string",
               "required": true,
               "skip_if_exists": false,
-              "mcp_read_tool": "get_individual_identity_and_tax_id",
-              "mcp_update_tool": "update_client_occupation_and_income_source",
+              "mcp_read_tool": "get_client_occupation_and_us_income_source",
+              "mcp_update_tool": "update_client_occupation_and_us_income_source",
               "validation": "non_empty"
             }
           ]
@@ -84,32 +84,14 @@
               "question_id": "2.1",
               "question_text": "Do you already have an ITIN number?",
               "field_name": "has_itin",
-              "data_type": "boolean",
-              "required": true,
-              "skip_if_exists": false,
-              "mcp_read_tool": "get_individual_identity_and_tax_id"
-            },
-            {
-              "question_id": "2.2",
-              "question_text": "Please provide your ITIN number.",
-              "field_name": "itin_number",
               "data_type": "string",
               "required": true,
-              "skip_if_exists": true,
-              "mcp_read_tool": "get_individual_identity_and_tax_id",
-              "mcp_update_tool": "update_individual_identity_and_tax_id",
-              "condition": "answer_2.1_is_yes",
-              "validation": "valid_itin"
-            },
-            {
-              "question_id": "2.3",
-              "question_text": "Is this ITIN still valid?",
-              "field_name": "itin_valid",
-              "data_type": "boolean",
-              "required": true,
               "skip_if_exists": false,
-              "condition": "has_itin"
+              "mcp_read_tool": "get_client_itin_exists",
+              "mcp_update_tool": "update_client_itin_number",
+              "validation": "non_empty"
             },
+            
             {
               "question_id": "2.4",
               "question_text": "You'll need to apply for ITIN. Please upload FORM W7.",
